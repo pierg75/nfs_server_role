@@ -1,0 +1,13 @@
+---
+# defaults file for nfs-server
+
+all_same_options:
+  number_exports: 3
+  base_dir: /exports/test  
+  allowed_address: "*"
+  export_options: "rw,async,no_root_squash"
+
+#list_of_shares:
+  #  - "/exports/testx  * rw,async,no_root_squash"
+  #  - "/exports/testy  * rw,async,no_root_squash"
+  #  - "/exports/testz  * rw,async,no_root_squash"

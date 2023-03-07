@@ -1,0 +1,16 @@
+---
+- import_tasks: install_packages.yml
+  when: packages_installed is defined and not packages_installed
+
+- name: Create export directories
+  ansible.builtin.file:
+    path: "{{ item.exportdir }}"
+    state: directory
+    mode: '0777'
+  loop: "{{ list_of_shares }}"
+
+- name: Configure the exports
+  ansible.builtin.lineinfile:
+    path: /etc/exports
+    line: "{{ item.exportdir }}     {{ item.allowed_address }}({{ item.export_options }})"
+  loop: "{{ list_of_shares }}"

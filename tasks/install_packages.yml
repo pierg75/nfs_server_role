@@ -1,0 +1,16 @@
+---
+- name: Install nfs packages (RHEL6/7)
+  ansible.builtin.package:
+    name: nfs-utils, tcpdump, wireshark, policycoreutils-python
+    state: latest
+  when: ansible_facts['distribution'] == "RedHat" and ansible_facts['distribution_major_version'] | int <= 7
+
+- name: Install nfs packages (RHEL8+)
+  ansible.builtin.package:
+    name: nfs-utils, tcpdump, wireshark-cli, policycoreutils-python-utils
+    state: latest
+  when: ansible_facts['distribution'] == "RedHat" and ansible_facts['distribution_major_version'] | int >= 8
+
+- name: Set the variable to avoid double packages installations
+  ansible.builtin.set_fact:
+    packages_installed: true

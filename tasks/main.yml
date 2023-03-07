@@ -1,0 +1,48 @@
+---
+# tasks file for nfs-server
+
+- name: Make sure /etc/exports is empty
+  ansible.builtin.copy:
+    content: ""
+    dest: /etc/exports
+    force: true
+    group: root
+    owner: root
+    mode: 0644
+
+- import_tasks: all_same_options.yml
+  when: all_same_options is defined
+
+- import_tasks: list_of_shares.yml
+  when: list_of_shares is defined
+
+- name: Start nfs service (RHEL6)
+  ansible.builtin.service:
+    name: nfs
+    state: restarted
+  when: ansible_facts['distribution'] == "RedHat" and ansible_facts['distribution_major_version'] | int <= 6
+
+- name: Start nfs service (RHEL7+)
+  ansible.builtin.service:
+    name: nfs-server
+    state: restarted
+  when: ansible_facts['distribution'] == "RedHat" and ansible_facts['distribution_major_version'] | int >= 7
+
+- name: collect facts about system services
+  ansible.builtin.service_facts:
+  register: services_state
+
+- name: Allow nfs traffic
+  ansible.posix.firewalld:
+    service: nfs, nfs3
+    permanent: true
+    state: enabled
+    immediate: true
+  when: services_state['services']['firewalld.service'] is defined and services_state['services']['firewalld.service']['state'] == "running"
+
+- name: Set some useful selinux bools
+  ansible.posix.seboolean:
+    name: httpd_use_nfs, use_nfs_home_dirs, virt_use_nfs, git_cgi_use_nfs
+    state: true
+    persistent: true
+  when: ansible_facts['ansible_selinux'] is defined and ansible_facts['ansible_selinux']['status'] == "enabled"
